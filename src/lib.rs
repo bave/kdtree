@@ -78,7 +78,11 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
             return None;
         };
 
-        let mid = (right+left) >> 1;
+        let mid = if right == 1 {
+            1
+        } else {
+            (right+left) >> 1
+        };
         //print!("mid:{}\n", mid);
  
         qselect_indirect(indices, left, right, mid, &|x| self.points[x].dim(axis));
@@ -301,14 +305,6 @@ mod tests
             Self {
                 id: id,
                 vec: vec![x, y, z],
-            }
-        }
-
-        pub fn new_vec(id: String, v: [f64;Point::DIM]) -> Self
-        {
-            Self {
-                id: id,
-                vec: v.to_vec()
             }
         }
     }
