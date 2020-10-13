@@ -1,5 +1,8 @@
 # kdtree
-kdtree
+
+![Rust](https://github.com/bave/kdtree/workflows/Rust/badge.svg)
+
+kdtree library
 
 ## Cargo.toml
 ```toml
