@@ -37,9 +37,11 @@ fn main()
 
     let p = Point{id: "query".to_string(), vec: [3.1, 4.1]};
     let k = kdt.knn_search(&p, 1);
-    print!("{:?}\n", k);
+    print!("knn return indices: {:?}\n", k);
+    print!("nearlest neighbor Point:{:?}\n", vec_point[k[0]]);
     let r = kdt.radius_search(&p, 1.0);
-    print!("{:?}\n", r);
+    print!("radius search return indices: {:?}\n", r);
+    print!("nearlest neighbor Point:{:?}\n", vec_point[r[0]]);
 
     std::process::exit(0);
 }
