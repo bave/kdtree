@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 qselect = { git = "https://github.com/bave/qselect.git" }
-#binheap = { git = "https://github.com/bave/binheap.git" }
+crossbeam = "*"
+num_cpus = "*"

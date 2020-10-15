@@ -18,7 +18,15 @@ macro_rules! is_exist
 }
 
 extern crate qselect;
+#[allow(unused_imports)]
 use qselect::*;
+
+extern crate num_cpus;
+
+/*
+#[allow(unused_imports)]
+use async_recursion::async_recursion;
+*/
 
 pub trait TraitPoint
 {
@@ -29,30 +37,44 @@ pub trait TraitPoint
 type Link = Option<Box<Node>>;
 
 #[derive(Debug)]
-pub struct KDTree<'a, T: TraitPoint>
+pub struct KDTree<'a, T: TraitPoint + std::marker::Sync>
 {
     root: Link,
     points: &'a Vec<T>,
+    cross: usize,
 }
 
-impl<'a, T: TraitPoint> KDTree<'a, T>
+impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
 {
     pub fn new(points: &'a Vec<T>) -> Self
     {
         Self {
             root: None,
             points: points,
+            cross: ((num_cpus::get() as f64).log2().floor()) as usize,
         }
+    }
+
+    pub fn set_cross(&mut self, cross: usize)
+    {
+        self.cross = cross;
+    }
+
+    pub fn get_cross(&mut self) -> usize
+    {
+        self.cross
     }
 
     pub fn build(&mut self)
     {
         self.cleaer();
         let mut indices = (0..self.points.len()).collect::<Vec<usize>>();
-        let len = indices.len();
-        //print!("len{}\n", len);
-        self.root = self.recurs_build(&mut indices, 0, len-1, 0);
-        //print!("{:?}\n", indices);
+        let len = indices.len()-1;
+
+        println!("{:?}", indices);
+
+        self.root = Self::recurs_build(&self.points, self.cross, &mut indices, 0, len, 0);
+        //print!("cross_depth:{}\n", self.cross);
     }
 
     fn cleaer(&mut self)
@@ -60,7 +82,7 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
         self.root = None
     }
 
-    fn recurs_build(&mut self, indices: &mut [usize], left: usize, right: usize, depth: usize)
+    fn recurs_build(p: &'a Vec<T>, c: usize, indices: &mut [usize], left: usize, right: usize, depth: usize)
        -> Option<Box<Node>>
     {
         let axis = depth % T::DIM;
@@ -74,9 +96,12 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
                 right: None,
             });
             return Some(node);
-        } else if right < left { 
+        } 
+        /*
+        else if right < left { 
             return None;
         };
+        */
 
         let mid = if right == 1 {
             1
@@ -84,14 +109,64 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
             (right+left) >> 1
         };
         //print!("mid:{}\n", mid);
- 
-        qselect_indirect(indices, left, right, mid, &|x| self.points[x].dim(axis));
+
+        qselect_indirect(indices, left, right, mid, &|x| p[x].dim(axis));
+        let (indices_left, indices_tmp) =  indices.split_at_mut(mid);
+        let (_indices_mid, indices_right) =  indices_tmp.split_at_mut(1);
+        //print!("{}: {:?} / {:?}  / {:?}\n", depth, indices_left, indices_mid, indices_right);
+
+        let l_len = indices_left.len();
+        let r_len = indices_right.len();
+
+        let scope = if depth == c {
+            crossbeam::scope(|s| {
+                let left_scope = s.spawn(|_| { 
+                    print!("hoge\n");
+                    if l_len == 0 {
+                        None
+                    } else {
+                        Self::recurs_build(p, c, indices_left, 0, l_len-1, depth + 1)
+                    }
+                });
+                let right_scope = s.spawn(|_| {
+                    print!("hoge\n");
+                    if r_len == 0 {
+                        None
+                    } else {
+                        Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1)
+                    }
+                });
+                let l = left_scope.join().unwrap();
+                let r = right_scope.join().unwrap();
+                Some((l, r))
+            }).unwrap()
+        } else {
+             //let l = Self::recurs_build(p, c, indices, left, mid-1, depth + 1);
+             //let r = Self::recurs_build(p, c, indices, mid+1, right, depth + 1);
+             let l = if l_len == 0 {
+                 None
+             } else {
+                 Self::recurs_build(p, c, indices_left, 0, l_len-1, depth + 1)
+             };
+             let r = if r_len == 0 {
+                 None
+             } else {
+                 Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1)
+             };
+             Some((l, r))
+        };
+        let (left_node, right_node) = scope.unwrap();
+
+        /*
+        let left_node = Self::recurs_build(p, c, indices, left, mid-1, depth + 1);
+        let right_node = Self::recurs_build(p, c, indices, mid+1, right, depth + 1);
+        */
 
         let node = Box::new(Node {
             idx: indices[mid],
             axis: axis,
-            left : self.recurs_build(indices, left, mid-1, depth + 1),
-            right: self.recurs_build(indices, mid+1, right, depth + 1),
+            left : left_node,
+            right: right_node,
         });
         return Some(node);
     }
@@ -335,13 +410,14 @@ mod tests
         ps.push(Point::new("hoge7".to_string(), 7.0, 0.0, 0.0));
         let mut kdt = KDTree::new(&ps); 
         kdt.build();
-        //print!("{:#?}\n", kdt);
+        print!("{:#?}\n", kdt);
         let p = Point::new("query".to_string(), 6.0, 1.0, 0.0);
         let r = kdt.knn_search(&p, 2);
-        assert_eq!(r, [6,5]);
-        //print!("{:?}\n", &r);
+        assert_eq!(r, [6, 5]);
+        print!("{:?}\n", &r);
     }
 
+    /*
     #[test]
     fn fspq()
     {
@@ -373,4 +449,5 @@ mod tests
         assert_eq!(q.vec, []);
         print!("{:?}\n", q);
     }
+    */
 }
