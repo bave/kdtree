@@ -71,7 +71,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         let mut indices = (0..self.points.len()).collect::<Vec<usize>>();
         let len = indices.len()-1;
 
-        println!("{:?}", indices);
+        //println!("{:?}", indices);
 
         self.root = Self::recurs_build(&self.points, self.cross, &mut indices, 0, len, 0);
         //print!("cross_depth:{}\n", self.cross);
@@ -121,7 +121,6 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         let scope = if depth == c {
             crossbeam::scope(|s| {
                 let left_scope = s.spawn(|_| { 
-                    print!("hoge\n");
                     if l_len == 0 {
                         None
                     } else {
@@ -129,7 +128,6 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
                     }
                 });
                 let right_scope = s.spawn(|_| {
-                    print!("hoge\n");
                     if r_len == 0 {
                         None
                     } else {
