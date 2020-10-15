@@ -118,7 +118,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         let l_len = indices_left.len();
         let r_len = indices_right.len();
 
-        let scope = if depth == c {
+        let scope = if depth <= c {
             crossbeam::scope(|s| {
                 let left_scope = s.spawn(|_| { 
                     if l_len == 0 {
