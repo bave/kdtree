@@ -38,8 +38,8 @@ impl TraitPoint for Point
 
 fn main()
 {
-        let node_numbers = 100_000;
-        let query_iteration = 10_000;
+        let node_numbers = 1_000_000;
+        let query_iteration = 1_000_000;
 
         let mut rng = thread_rng();
         //let rmin = (-0x80000000/2) as f64;
@@ -76,33 +76,28 @@ fn main()
             let q = Point{id: i.to_string(), vec: [x, y, z]};
             vec_query.push(q);
         }
-        let mut sec : u64 = 0;
-        let mut nsec : u32 = 0;
+
+        let tstart = std::time::Instant::now();
         for i in &vec_query {
-            let start = std::time::Instant::now();
+            //let start = std::time::Instant::now();
             let _ = kdt.knn_search(i, 1);
-            let end = start.elapsed();
-            sec += end.as_secs();
-            nsec += end.subsec_nanos();
-            //print!("knn:5 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
+            //let end = start.elapsed();
         }
+        let tend = tstart.elapsed();
 
-        sec /= query_iteration as u64;
-        nsec /= query_iteration as u32;
-        print!("	knn:5 ave_time: {}.{:09}[sec]\n", sec, nsec);
+        print!("	knn:1      ");
+        print!("	total_time: {}.{:09}[sec]\n", tend.as_secs(), tend.subsec_nanos());
 
-
-        sec = 0;
-        nsec = 0;
+        let tstart = std::time::Instant::now();
         for i in &vec_query {
-            let start = std::time::Instant::now();
+            //let start = std::time::Instant::now();
             let _ = kdt.radius_search(i, 100.0);
-            let end = start.elapsed();
-            sec += end.as_secs();
-            nsec += end.subsec_nanos();
-            //print!("radius:100 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
+            //let end = start.elapsed();
         }
-        print!("	radius:100 ave_time: {}.{:09}[sec]\n", sec, nsec);
+        let tend = tstart.elapsed();
+
+        print!("	radius:100 ");
+        print!("	total_time: {}.{:09}[sec]\n", tend.as_secs(), tend.subsec_nanos());
 
         std::process::exit(0);
 }
