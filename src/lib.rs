@@ -121,18 +121,12 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         let scope = if depth <= c {
             crossbeam::scope(|s| {
                 let left_scope = s.spawn(|_| { 
-                    if l_len == 0 {
-                        None
-                    } else {
-                        Self::recurs_build(p, c, indices_left, 0, l_len-1, depth + 1)
-                    }
+                    if l_len == 0 { None }
+                    else { Self::recurs_build(p, c, indices_left, 0, l_len-1, depth + 1) }
                 });
                 let right_scope = s.spawn(|_| {
-                    if r_len == 0 {
-                        None
-                    } else {
-                        Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1)
-                    }
+                    if r_len == 0 { None }
+                    else { Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1) }
                 });
                 let l = left_scope.join().unwrap();
                 let r = right_scope.join().unwrap();

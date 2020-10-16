@@ -10,3 +10,4 @@ edition = "2018"
 qselect = { git = "https://github.com/bave/qselect.git" }
 crossbeam = "*"
 num_cpus = "*"
+rand = "*"
