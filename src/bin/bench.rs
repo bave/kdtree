@@ -58,11 +58,13 @@ fn main()
         }
 
         let mut kdt = KDTree::new(&vec_point);
-        //kdt.set_cross(4);
+        //kdt.set_cross(2);
+        print!("cross:{} / nodes: {}\n", kdt.get_cross(), node_numbers);
+
         let start = std::time::Instant::now();
         kdt.build();
         let end = start.elapsed();
-        print!("{} nodes\n", node_numbers);
+
         print!("build: {}.{:09}[sec]\n", end.as_secs(), end.subsec_nanos());
 
         let mut vec_query : Vec<Point> = Vec::new();

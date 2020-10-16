@@ -118,7 +118,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         let l_len = indices_left.len();
         let r_len = indices_right.len();
 
-        let scope = if depth <= c {
+        let (left_node, right_node) = if depth <= c {
             crossbeam::scope(|s| {
                 let left_scope = s.spawn(|_| { 
                     if l_len == 0 { None }
@@ -128,13 +128,11 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
                     if r_len == 0 { None }
                     else { Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1) }
                 });
-                let l = left_scope.join().unwrap();
-                let r = right_scope.join().unwrap();
-                Some((l, r))
-            }).unwrap()
+                let l = left_scope.join().unwrap();  //ScopedJoinHandle.unwrap
+                let r = right_scope.join().unwrap(); //ScopedJoinHandle.unwrap
+                (l, r)
+            }).unwrap() //result.unwrap
         } else {
-             //let l = Self::recurs_build(p, c, indices, left, mid-1, depth + 1);
-             //let r = Self::recurs_build(p, c, indices, mid+1, right, depth + 1);
              let l = if l_len == 0 {
                  None
              } else {
@@ -145,14 +143,8 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
              } else {
                  Self::recurs_build(p, c, indices_right, 0, r_len-1, depth + 1)
              };
-             Some((l, r))
+             (l, r)
         };
-        let (left_node, right_node) = scope.unwrap();
-
-        /*
-        let left_node = Self::recurs_build(p, c, indices, left, mid-1, depth + 1);
-        let right_node = Self::recurs_build(p, c, indices, mid+1, right, depth + 1);
-        */
 
         let node = Box::new(Node {
             idx: indices[mid],
