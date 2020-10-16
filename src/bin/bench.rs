@@ -38,8 +38,8 @@ impl TraitPoint for Point
 
 fn main()
 {
-        let node_numbers = 1_000_000;
-        let query_iteration = 10;
+        let node_numbers = 100_000;
+        let query_iteration = 10_000;
 
         let mut rng = thread_rng();
         //let rmin = (-0x80000000/2) as f64;
@@ -65,8 +65,9 @@ fn main()
         kdt.build();
         let end = start.elapsed();
 
-        print!("build: {}.{:09}[sec]\n", end.as_secs(), end.subsec_nanos());
+        print!("	build: {}.{:09}[sec]\n", end.as_secs(), end.subsec_nanos());
 
+        print!("ter:{}\n", query_iteration);
         let mut vec_query : Vec<Point> = Vec::new();
         for i in 0 .. query_iteration {
             let x: f64 = rng.gen_range(rmin, rmax);
@@ -75,19 +76,33 @@ fn main()
             let q = Point{id: i.to_string(), vec: [x, y, z]};
             vec_query.push(q);
         }
+        let mut sec : u64 = 0;
+        let mut nsec : u32 = 0;
         for i in &vec_query {
             let start = std::time::Instant::now();
-            let k = kdt.knn_search(i, 5);
+            let _ = kdt.knn_search(i, 1);
             let end = start.elapsed();
-            print!("knn:5 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
+            sec += end.as_secs();
+            nsec += end.subsec_nanos();
+            //print!("knn:5 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
         }
 
+        sec /= query_iteration as u64;
+        nsec /= query_iteration as u32;
+        print!("	knn:5 ave_time: {}.{:09}[sec]\n", sec, nsec);
+
+
+        sec = 0;
+        nsec = 0;
         for i in &vec_query {
             let start = std::time::Instant::now();
-            let k = kdt.radius_search(i, 100.0);
+            let _ = kdt.radius_search(i, 100.0);
             let end = start.elapsed();
-            print!("radius:100 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
+            sec += end.as_secs();
+            nsec += end.subsec_nanos();
+            //print!("radius:100 time: {}.{:09}[sec], indecis:{:?}\n", end.as_secs(), end.subsec_nanos(), k);
         }
+        print!("	radius:100 ave_time: {}.{:09}[sec]\n", sec, nsec);
 
         std::process::exit(0);
 }
