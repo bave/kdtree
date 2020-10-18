@@ -60,6 +60,7 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
         self.root = None
     }
 
+    #[inline]
     fn recurs_build(&mut self, indices: &mut [usize], left: usize, right: usize, depth: usize)
        -> Option<Box<Node>>
     {
@@ -107,6 +108,7 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
         return queue.vec.iter().map(|x| x.1).collect();
     }
 
+    #[inline]
     fn recurs_knn_search(&self,
                          k: usize,
                          query: &T,
@@ -150,6 +152,7 @@ impl<'a, T: TraitPoint> KDTree<'a, T>
         };
     }
 
+    #[inline]
     pub fn radius_search(&mut self, query: &T, radius: f64) -> Vec<usize>
     {
         let node = &self.root;
