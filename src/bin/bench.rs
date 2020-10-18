@@ -38,8 +38,8 @@ impl TraitPoint for Point
 
 fn main()
 {
-        let node_numbers = 1_000_000;
-        let query_iteration = 1_000_000;
+        let node_numbers = 10_000_000;
+        let query_iteration = 10_000;
 
         let mut rng = thread_rng();
         //let rmin = (-0x80000000/2) as f64;

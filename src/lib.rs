@@ -82,6 +82,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         self.root = None
     }
 
+    #[inline]
     fn recurs_build(p: &'a Vec<T>, c: usize, indices: &mut [usize], left: usize, right: usize, depth: usize)
        -> Option<Box<Node>>
     {
@@ -155,7 +156,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         return Some(node);
     }
 
-
+    #[inline]
     pub fn knn_search(&mut self, query: &T, k: usize) -> Vec<usize>
     {
         let mut queue : FixedSizePriorityQueue<(f64, usize)> = FixedSizePriorityQueue::new(k);
@@ -209,6 +210,7 @@ impl<'a, T: TraitPoint +  std::marker::Sync> KDTree<'a, T>
         };
     }
 
+    #[inline]
     pub fn radius_search(&mut self, query: &T, radius: f64) -> Vec<usize>
     {
         let node = &self.root;
